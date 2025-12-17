@@ -48,9 +48,10 @@ async def clarify_with_user(state: AgentState, config: RunnableConfig) -> Comman
         messages=get_buffer_string(messages),
         date=get_today_str()
     )
-
-    response = await clarification_model.ainvoke([HumanMessage(content=prompt_content)])
-    print("clarification response:", response)
+    response = None
+    while not response:
+        response = await clarification_model.ainvoke([HumanMessage(content=prompt_content)])
+        print("clarification response:", response)
 
     # Step 4: Route based on clarification analysis
     if response.need_clarification:

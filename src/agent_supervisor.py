@@ -13,7 +13,7 @@ from src.state import AgentState, ResearchQuestion, AgentInputState, ConductRese
 from src.configuration import Configuration
 from src.utility import think_tool, get_today_str, get_notes_from_tool_calls, refine_draft_report
 from src.prompts.prompt_supervisor import lead_researcher_with_multiple_steps_diffusion_double_check_prompt
-
+from langgraph.prebuilt import InjectedState
 load_dotenv()
 
 
@@ -32,7 +32,7 @@ async def supervisor(state: SupervisorState, config: RunnableConfig) -> Command[
     Returns:
         Command to proceed to supervisor_tools for tool execution
     """
-    logger.debug("Starting supervisor")
+    # logger.debug("Starting supervisor")
 
     configurable = Configuration.from_runnable_config(config)
     max_researcher_iterations = configurable.max_researcher_iterations
@@ -60,7 +60,7 @@ async def supervisor(state: SupervisorState, config: RunnableConfig) -> Command[
     response = await research_model.ainvoke(messages)
 
     # Step 3: Update state and proceed to tool execution
-    logger.debug("Supervisor response generated, moving to supervisor_tools")
+    # logger.debug("Supervisor response generated, moving to supervisor_tools")
     return Command(
         goto="supervisor_tools",
         update={

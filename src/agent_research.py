@@ -22,7 +22,7 @@ def llm_call(state: ResearcherState, config: RunnableConfig):
     configurable = Configuration.from_runnable_config(config)
     model_with_tools = (
         configurable.get_model()
-        .bind_tools(configurable.get_researcher_tools())
+        .bind_tools(configurable.get_research_tools())
         .with_retry(stop_after_attempt=configurable.max_structured_output_retries)
     )
     return {

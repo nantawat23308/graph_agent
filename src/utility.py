@@ -1,12 +1,23 @@
 from langchain.messages import ToolMessage
 from langchain_core.tools import tool, InjectedToolArg
-from src.state import MessagesState
+from src.state import MessagesState, Summary
 from src.prompts.prompt_utility import report_generation_with_draft_insight_prompt, summarize_webpage_prompt
 from datetime import datetime
 from typing import Annotated, Literal, List, Tuple
 from langchain_core.messages import ToolMessage, HumanMessage, BaseMessage, filter_messages
+from langchain.chat_models import init_chat_model
+from tavily import TavilyClient
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
+model = init_chat_model("bedrock_converse:us.meta.llama4-maverick-17b-instruct-v1:0")
 
+summarization_model = model
+writer_model = model
+tavily_client = TavilyClient(
+    api_key=os.getenv("TAVILY_SEARCH_API_KEY"),
+)
 MAX_CONTEXT_LENGTH = 250000
 
 @tool(description="Strategic reflection tool for research planning")

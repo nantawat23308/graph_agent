@@ -14,6 +14,10 @@ class Configuration(BaseModel):
     llm: BaseChatModel = Field(
         description="The language model to use for research operations.",
     )
+    allow_clarification: bool = Field(
+        default=True,
+        description="Whether to allow the agent to ask clarifying questions to the user before starting research.",
+    )
     context_window: int = Field(
         default=1048576,
         description="Context window (input) size of the LLM in tokens.",
