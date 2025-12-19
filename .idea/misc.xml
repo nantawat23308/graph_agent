@@ -3,5 +3,5 @@
   <component name="Black">
     <option name="sdkName" value="Python 3.12 (portf)" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.12 (portf)" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.12 (graph_agent)" project-jdk-type="Python SDK" />
 </project>
