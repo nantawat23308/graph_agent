@@ -4,7 +4,7 @@ from langchain_core.embeddings import Embeddings
 from langchain_core.documents import Document
 from typing import List
 from src.langchain_milvus.utility import get_bedrock_embeddings
-
+from langchain_core.vectorstores import VectorStore
 
 def ingest_from_texts(texts: List[str], collection_name: str, uri: str):
     """Ingest texts into Milvus vector store."""
@@ -17,6 +17,7 @@ def ingest_from_texts(texts: List[str], collection_name: str, uri: str):
     )
     return vector_store
 
+
 def ingest_from_documents(documents: List[Document], collection_name: str, uri: str):
     """Ingest documents into Milvus vector store."""
     vector_store = Milvus.from_documents(
@@ -28,13 +29,14 @@ def ingest_from_documents(documents: List[Document], collection_name: str, uri: 
     )
     return vector_store
 
-def ingest_documents(vector_store: Milvus, documents: List[Document]):
+
+def ingest_documents(vector_store: VectorStore, documents: List[Document]):
     """Ingest documents into Milvus vector store."""
     vector_store.add_documents(documents)
     return vector_store
 
-def ingest_texts(vector_store: Milvus, texts: List[str]):
+
+def ingest_texts(vector_store: VectorStore, texts: List[str]):
     """Ingest texts into Milvus vector store."""
     vector_store.add_texts(texts)
     return vector_store
-

@@ -14,8 +14,8 @@ from src.configuration import Configuration
 from src.utility import think_tool, get_today_str, get_notes_from_tool_calls, refine_draft_report
 from src.prompts.prompt_supervisor import lead_researcher_with_multiple_steps_diffusion_double_check_prompt
 from langgraph.prebuilt import InjectedState
-load_dotenv()
 
+load_dotenv()
 
 
 async def supervisor(state: SupervisorState, config: RunnableConfig) -> Command[Literal["supervisor_tools"]]:
@@ -52,7 +52,7 @@ async def supervisor(state: SupervisorState, config: RunnableConfig) -> Command[
     system_message = lead_researcher_with_multiple_steps_diffusion_double_check_prompt.format(
         date=get_today_str(),
         max_concurrent_research_units=max_concurrent_research_units,
-        max_researcher_iterations=max_researcher_iterations
+        max_researcher_iterations=max_researcher_iterations,
     )
 
     messages = [SystemMessage(content=system_message)] + supervisor_messages
@@ -63,10 +63,7 @@ async def supervisor(state: SupervisorState, config: RunnableConfig) -> Command[
     # logger.debug("Supervisor response generated, moving to supervisor_tools")
     return Command(
         goto="supervisor_tools",
-        update={
-            "supervisor_messages": [response],
-            "research_iterations": state.get("research_iterations", 0) + 1
-        },
+        update={"supervisor_messages": [response], "research_iterations": state.get("research_iterations", 0) + 1},
     )
 
 
@@ -81,6 +78,7 @@ async def supervisor_tools(state: SupervisorState, config: RunnableConfig) -> Co
 
     Args:
         state: Current supervisor state with messages and iteration count
+        config: Runtime configuration with model settings
 
     Returns:
         Command to continue supervision, end process, or handle errors
@@ -102,10 +100,7 @@ async def supervisor_tools(state: SupervisorState, config: RunnableConfig) -> Co
     # Check exit criteria first
     exceeded_iterations = research_iterations >= max_researcher_iterations
     no_tool_calls = not most_recent_message.tool_calls
-    research_complete = any(
-        tool_call["name"] == "ResearchComplete"
-        for tool_call in most_recent_message.tool_calls
-    )
+    research_complete = any(tool_call["name"] == "ResearchComplete" for tool_call in most_recent_message.tool_calls)
 
     if exceeded_iterations or no_tool_calls or research_complete:
         should_end = True
@@ -116,41 +111,34 @@ async def supervisor_tools(state: SupervisorState, config: RunnableConfig) -> Co
         try:
             # Separate think_tool calls from ConductResearch calls
             think_tool_calls = [
-                tool_call for tool_call in most_recent_message.tool_calls
-                if tool_call["name"] == "think_tool"
+                tool_call for tool_call in most_recent_message.tool_calls if tool_call["name"] == "think_tool"
             ]
 
             conduct_research_calls = [
-                tool_call for tool_call in most_recent_message.tool_calls
-                if tool_call["name"] == "ConductResearch"
+                tool_call for tool_call in most_recent_message.tool_calls if tool_call["name"] == "ConductResearch"
             ]
 
             refine_report_calls = [
-                tool_call for tool_call in most_recent_message.tool_calls
-                if tool_call["name"] == "refine_draft_report"
+                tool_call for tool_call in most_recent_message.tool_calls if tool_call["name"] == "refine_draft_report"
             ]
 
             # Handle think_tool calls (synchronous)
             for tool_call in think_tool_calls:
                 observation = think_tool.invoke(tool_call["args"])
                 tool_messages.append(
-                    ToolMessage(
-                        content=observation,
-                        name=tool_call["name"],
-                        tool_call_id=tool_call["id"]
-                    )
+                    ToolMessage(content=observation, name=tool_call["name"], tool_call_id=tool_call["id"])
                 )
 
             # Handle ConductResearch calls (asynchronous)
             if conduct_research_calls:
                 # Launch parallel research agents
                 coros = [
-                    researcher_agent.ainvoke({
-                        "researcher_messages": [
-                            HumanMessage(content=tool_call["args"]["research_topic"])
-                        ],
-                        "research_topic": tool_call["args"]["research_topic"]
-                    })
+                    researcher_agent.ainvoke(
+                        {
+                            "researcher_messages": [HumanMessage(content=tool_call["args"]["research_topic"])],
+                            "research_topic": tool_call["args"]["research_topic"],
+                        }
+                    )
                     for tool_call in conduct_research_calls
                 ]
                 tool_results = await asyncio.gather(*coros)
@@ -163,31 +151,27 @@ async def supervisor_tools(state: SupervisorState, config: RunnableConfig) -> Co
                     ToolMessage(
                         content=result.get("compressed_research", "Error synthesizing research report"),
                         name=tool_call["name"],
-                        tool_call_id=tool_call["id"]
-                    ) for result, tool_call in zip(tool_results, conduct_research_calls)
+                        tool_call_id=tool_call["id"],
+                    )
+                    for result, tool_call in zip(tool_results, conduct_research_calls)
                 ]
                 tool_messages.extend(research_tool_messages)
                 # Aggregate raw notes from all research
-                all_raw_notes = [
-                    "\n".join(result.get("raw_notes", []))
-                    for result in tool_results
-                ]
+                all_raw_notes = ["\n".join(result.get("raw_notes", [])) for result in tool_results]
             for tool_call in refine_report_calls:
                 notes = get_notes_from_tool_calls(supervisor_messages)
                 findings = "\n".join(notes)
 
-                draft_report = refine_draft_report.invoke({
-                    "research_brief": state.get("research_brief", ""),
-                    "findings": findings,
-                    "draft_report": state.get("draft_report", "")
-                })
+                draft_report = refine_draft_report.invoke(
+                    {
+                        "research_brief": state.get("research_brief", ""),
+                        "findings": findings,
+                        "draft_report": state.get("draft_report", ""),
+                    }
+                )
 
                 tool_messages.append(
-                    ToolMessage(
-                        content=draft_report,
-                        name=tool_call["name"],
-                        tool_call_id=tool_call["id"]
-                    )
+                    ToolMessage(content=draft_report, name=tool_call["name"], tool_call_id=tool_call["id"])
                 )
         except Exception as e:
             should_end = True
@@ -199,26 +183,17 @@ async def supervisor_tools(state: SupervisorState, config: RunnableConfig) -> Co
             goto=next_step,
             update={
                 "notes": get_notes_from_tool_calls(supervisor_messages),
-                "research_brief": state.get("research_brief", "")
-            }
+                "research_brief": state.get("research_brief", ""),
+            },
         )
     elif len(refine_report_calls) > 0:
         return Command(
             goto=next_step,
-            update={
-                "supervisor_messages": tool_messages,
-                "raw_notes": all_raw_notes,
-                "draft_report": draft_report
-            }
+            update={"supervisor_messages": tool_messages, "raw_notes": all_raw_notes, "draft_report": draft_report},
         )
     else:
-        return Command(
-            goto=next_step,
-            update={
-                "supervisor_messages": tool_messages,
-                "raw_notes": all_raw_notes
-            }
-        )
+        return Command(goto=next_step, update={"supervisor_messages": tool_messages, "raw_notes": all_raw_notes})
+
 
 supervisor_builder = StateGraph(SupervisorState, context_schema=Configuration)
 supervisor_builder.add_node("supervisor", supervisor)

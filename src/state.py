@@ -30,7 +30,9 @@ def override_reducer(current_value, new_value):
     else:
         return operator.add(current_value, new_value)
 
+
 # ===== STATE DEFINITIONS =====
+
 
 class AgentState(MessagesState):
     """Main agent state containing messages and research data."""
@@ -56,9 +58,11 @@ class SupervisorState(TypedDict):
 
 # ===== Tools =====
 
+
 @tool
 class ConductResearch(BaseModel):
     """Call this tool to conduct research on a specific topic."""
+
     research_topic: str = Field(
         description="The topic to research. Should be a single topic, and should be described in high detail (at least a paragraph).",
     )
@@ -77,6 +81,7 @@ class ResearcherState(TypedDict):
     tool calls, the research topic being investigated, compressed findings,
     and raw research notes for detailed analysis.
     """
+
     researcher_messages: Annotated[Sequence[BaseMessage], add_messages]
     tool_call_iterations: int
     research_topic: str
@@ -91,6 +96,7 @@ class ResearcherOutputState(TypedDict):
     This represents the final output of the research process with compressed
     research findings and all raw notes from the research process.
     """
+
     compressed_research: str
     raw_notes: Annotated[List[str], operator.add]
     researcher_messages: Annotated[Sequence[BaseMessage], add_messages]
@@ -98,6 +104,7 @@ class ResearcherOutputState(TypedDict):
 
 class Summary(BaseModel):
     """Schema for webpage content summarization."""
+
     summary: str = Field(description="Concise summary of the webpage content")
     key_excerpts: str = Field(description="Important quotes and excerpts from the content")
 
@@ -115,6 +122,7 @@ class ClarifyWithUser(BaseModel):
     verification: str = Field(
         description="Verify message that we will start research after the user has provided the necessary information.",
     )
+
 
 class DraftReport(BaseModel):
     """Schema for structured draft report generation."""

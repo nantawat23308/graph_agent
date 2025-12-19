@@ -3,10 +3,12 @@ from langchain_milvus import Milvus
 from langchain_core.embeddings import Embeddings
 from langchain_core.documents import Document
 from uuid import uuid4
-URI = "./milvus_example.db"
+from dotenv import load_dotenv
+from src.langchain_milvus.db import get_vector_store
+from src.langchain_milvus import constant
+load_dotenv()
 
-
-
+vector_store = get_vector_store(constant.COLLECTION_NAME)
 
 def get_bedrock_embeddings() -> Embeddings:
     """Get Bedrock embeddings instance."""
@@ -17,25 +19,17 @@ def get_bedrock_embeddings() -> Embeddings:
     return embeddings
 
 
-vector_store = Milvus(
-        embedding_function=get_bedrock_embeddings(),
-        connection_args={
-            "uri": URI,
-        },
-        index_params={
-            "index_type": "FLAT",
-            "metric_type": "L2",
 
-        }
-    )
+
 def ingest_from_documents():
     vector_store_saved = Milvus.from_documents(
         [Document(page_content="foo!")],
         get_bedrock_embeddings(),
-        collection_name="langchain_example",
-        connection_args={"uri": URI},
+        collection_name=constant.COLLECTION_NAME,
+        connection_args={"uri": constant.URI},
     )
     return vector_store_saved
+
 
 def ingest_documents():
     """Ingest documents into Milvus vector store."""
@@ -106,10 +100,12 @@ def ingest_documents():
     vector_store.add_documents(documents=documents, ids=uuids)
     print(f"Ingested {len(documents)} documents into Milvus vector store.")
 
+
 def delete_items_from_vector_store(id: str):
     """Delete all items from the Milvus vector store."""
     vector_store.delete(ids=[id])
     print("Deleted all items from Milvus vector store.")
+
 
 def query_direct():
     """Query the Milvus vector store."""
@@ -118,10 +114,11 @@ def query_direct():
         k=5,
     )
     for i, doc in enumerate(query_result):
-        print(f"Result {i + 1}: {doc.page_content} (Source: {doc.metadata['source']})")
+        print(f"Result {i + 1}: {doc.page_content}")
     return query_result
 
+
 if __name__ == "__main__":
-    ingest_documents()
+    # ingest_documents()
     query_direct()
     # delete_items_from_vector_store()

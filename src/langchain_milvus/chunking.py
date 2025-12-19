@@ -4,7 +4,6 @@ from langchain_docling import DoclingLoader
 from langchain_docling.loader import ExportType
 
 
-
 def chunk_text_file(file_path: str, chunk_size: int = 1000, chunk_overlap: int = 200):
     """Chunk a text file into smaller pieces.
 
@@ -34,6 +33,7 @@ def chunk_text_file(file_path: str, chunk_size: int = 1000, chunk_overlap: int =
 
     return chunk_texts
 
+
 def chunk_docling(file_path: str, chunk_size: int = 1000, chunk_overlap: int = 200):
     """Chunk a Docling file into smaller pieces.
 
@@ -62,6 +62,7 @@ def chunk_docling(file_path: str, chunk_size: int = 1000, chunk_overlap: int = 2
     chunk_texts = [chunk.page_content for chunk in chunks]
 
     return chunk_texts
+
 
 def header_splitter(file_path: str, chunk_size: int = 1000, chunk_overlap: int = 200):
     """Chunk a file into smaller pieces using header-based splitting.
@@ -94,10 +95,7 @@ def header_splitter(file_path: str, chunk_size: int = 1000, chunk_overlap: int =
 
     # C. Apply a Recursive Splitter for very long sections
     # This handles cases where one section is 5,000 words long.
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=chunk_size,
-        chunk_overlap=chunk_overlap
-    )
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
 
     final_chunks = text_splitter.split_documents(docs_split_by_header)
 
@@ -119,7 +117,7 @@ def manual_chunking(text, chunk_size=1000, overlap=200):
         chunks.append(chunk)
 
         # Move the start pointer forward (size minus overlap)
-        start += (chunk_size - overlap)
+        start += chunk_size - overlap
 
     return chunks
 
@@ -146,3 +144,10 @@ def chunk_by_paragraphs(text, max_chars=1000):
         chunks.append(current_chunk.strip())
 
     return chunks
+
+
+if __name__ == '__main__':
+    file_path = "sample_data/sample.txt"
+    chunks = chunk_text_file(file_path)
+    for i, chunk in enumerate(chunks):
+        print(f"Chunk {i + 1}:\n{chunk}\n{'-'*40}\n")

@@ -20,6 +20,7 @@ tavily_client = TavilyClient(
 )
 MAX_CONTEXT_LENGTH = 250000
 
+
 @tool(description="Strategic reflection tool for research planning")
 def think_tool(reflection: str) -> str:
     """Tool for strategic reflection on research progress and decision-making.
@@ -47,9 +48,9 @@ def think_tool(reflection: str) -> str:
     """
     return f"Reflection recorded: {reflection}"
 
+
 def bind_toolchain_model(tool_model: List) -> Tuple:
-    """Bind tools to the language model for research agent.
-    """
+    """Bind tools to the language model for research agent."""
     # Augment the LLM with tools
     tools_by_name = {tool.name: tool for tool in tool_model}
     return tool_model, tools_by_name
@@ -66,9 +67,11 @@ def get_today_str() -> str:
 
 
 @tool(parse_docstring=True)
-def refine_draft_report(research_brief: Annotated[str, InjectedToolArg],
-                        findings: Annotated[str, InjectedToolArg],
-                        draft_report: Annotated[str, InjectedToolArg]):
+def refine_draft_report(
+    research_brief: Annotated[str, InjectedToolArg],
+    findings: Annotated[str, InjectedToolArg],
+    draft_report: Annotated[str, InjectedToolArg],
+):
     """Refine draft report
 
     Synthesizes all research findings into a comprehensive draft report
@@ -83,16 +86,12 @@ def refine_draft_report(research_brief: Annotated[str, InjectedToolArg],
     """
 
     draft_report_prompt = report_generation_with_draft_insight_prompt.format(
-        research_brief=research_brief,
-        findings=findings,
-        draft_report=draft_report,
-        date=get_today_str()
+        research_brief=research_brief, findings=findings, draft_report=draft_report, date=get_today_str()
     )
 
     draft_report = writer_model.invoke([HumanMessage(content=draft_report_prompt)])
 
     return draft_report.content
-
 
 
 def get_notes_from_tool_calls(messages: list[BaseMessage]) -> list[str]:
@@ -135,14 +134,12 @@ def tavily_search_multiple(
     search_docs = []
     for query in search_queries:
         result = tavily_client.search(
-            query,
-            max_results=max_results,
-            include_raw_content=include_raw_content,
-            topic=topic
+            query, max_results=max_results, include_raw_content=include_raw_content, topic=topic
         )
         search_docs.append(result)
 
     return search_docs
+
 
 def summarize_webpage_content(webpage_content: str) -> str:
     """Summarize webpage content using the configured summarization model.
@@ -158,17 +155,17 @@ def summarize_webpage_content(webpage_content: str) -> str:
         structured_model = summarization_model.with_structured_output(Summary)
 
         # Generate summary
-        summary = structured_model.invoke([
-            HumanMessage(content=summarize_webpage_prompt.format(
-                webpage_content=webpage_content,
-                date=get_today_str()
-            ))
-        ])
+        summary = structured_model.invoke(
+            [
+                HumanMessage(
+                    content=summarize_webpage_prompt.format(webpage_content=webpage_content, date=get_today_str())
+                )
+            ]
+        )
 
         # Format summary with clear structure
         formatted_summary = (
-            f"<summary>\n{summary.summary}\n</summary>\n\n"
-            f"<key_excerpts>\n{summary.key_excerpts}\n</key_excerpts>"
+            f"<summary>\n{summary.summary}\n</summary>\n\n" f"<key_excerpts>\n{summary.key_excerpts}\n</key_excerpts>"
         )
 
         return formatted_summary
@@ -176,6 +173,7 @@ def summarize_webpage_content(webpage_content: str) -> str:
     except Exception as e:
         print(f"Failed to summarize webpage: {str(e)}")
         return webpage_content[:1000] + "..." if len(webpage_content) > 1000 else webpage_content
+
 
 def deduplicate_search_results(search_results: List[dict]) -> dict:
     """Deduplicate search results by URL to avoid processing duplicate content.
@@ -196,6 +194,7 @@ def deduplicate_search_results(search_results: List[dict]) -> dict:
 
     return unique_results
 
+
 def process_search_results(unique_results: dict) -> dict:
     """Process search results by summarizing content where available.
 
@@ -215,12 +214,10 @@ def process_search_results(unique_results: dict) -> dict:
             # Summarize raw content for better processing
             content = summarize_webpage_content(result['raw_content'][:MAX_CONTEXT_LENGTH])
 
-        summarized_results[url] = {
-            'title': result['title'],
-            'content': content
-        }
+        summarized_results[url] = {'title': result['title'], 'content': content}
 
     return summarized_results
+
 
 def format_search_output(summarized_results: dict) -> str:
     """Format search results into a well-structured string output.
@@ -244,7 +241,9 @@ def format_search_output(summarized_results: dict) -> str:
 
     return formatted_output
 
+
 # ===== RESEARCH TOOLS =====
+
 
 @tool(parse_docstring=True)
 def tavily_search(

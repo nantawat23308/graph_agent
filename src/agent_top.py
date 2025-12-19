@@ -9,6 +9,7 @@ from src.agent_supervisor import supervisor_agent
 from src.prompts.prompt_final import final_report_generation_with_helpfulness_insightfulness_hit_citation_prompt
 from src.configuration import Configuration
 
+
 async def final_report_generation(state: AgentState, config: RunnableConfig):
     """
     Final report generation node.
@@ -26,7 +27,7 @@ async def final_report_generation(state: AgentState, config: RunnableConfig):
         findings=findings,
         date=get_today_str(),
         draft_report=state.get("draft_report", ""),
-        user_request=state.get("user_request", "")
+        user_request=state.get("user_request", ""),
     )
 
     final_report = await writer_model.ainvoke([HumanMessage(content=final_report_prompt)])
@@ -36,12 +37,9 @@ async def final_report_generation(state: AgentState, config: RunnableConfig):
         "messages": ["Here is the final report: " + final_report.content],
     }
 
+
 # Build the overall workflow
-deep_researcher_builder = StateGraph(
-    AgentState,
-    input_schema=AgentInputState,
-    context_schema=Configuration
-)
+deep_researcher_builder = StateGraph(AgentState, input_schema=AgentInputState, context_schema=Configuration)
 # Add workflow nodes
 deep_researcher_builder.add_node("clarify_with_user", clarify_with_user)
 deep_researcher_builder.add_node("write_research_brief", write_research_brief)

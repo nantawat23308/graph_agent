@@ -1,4 +1,4 @@
-research_agent_prompt =  """You are a research assistant conducting research on the user's input topic. For context, today's date is {date}.
+research_agent_prompt = """You are a research assistant conducting research on the user's input topic. For context, today's date is {date}.
 
 <Task>
 Your job is to use tools to gather information about the user's input topic.
@@ -7,8 +7,8 @@ You can use any of the tools provided to you to find resources that can help ans
 
 <Available Tools>
 You have access to two main tools:
-1. **tavily_search**: For conducting web searches to gather information
-2. **think_tool**: For reflection and strategic planning during research
+{tool_instructions}
+- **think_tool**: For reflection and strategic planning during research
 
 **CRITICAL: Use think_tool after each search to reflect on results and plan next steps**
 </Available Tools>
@@ -57,7 +57,7 @@ Only these fully comprehensive cleaned findings are going to be returned to the 
 
 <Tool Call Filtering>
 **IMPORTANT**: When processing the research messages, focus only on substantive research content:
-- **Include**: All tavily_search results and findings from web searches
+- **Include**: All internet search_result results and findings from web searches
 - **Exclude**: think_tool calls and responses - these are internal agent reflections for decision-making and should not be included in the final research report
 - **Focus on**: Actual information gathered from external sources, not the agent's internal reasoning process
 
@@ -108,5 +108,3 @@ CRITICAL REQUIREMENTS:
 - Remember this research was conducted to answer the specific question above
 
 The cleaned findings will be used for final report generation, so comprehensiveness is critical."""
-
-

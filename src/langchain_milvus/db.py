@@ -1,7 +1,11 @@
-from langchain_milvus import Milvus
-from src.langchain_milvus.utility import get_bedrock_embeddings
+from pymilvus import Collection, MilvusException, connections, db, utility
 
-def get_vector_store(collection_name: str, uri: str) -> Milvus:
+from langchain_milvus import Milvus
+from langchain_core.vectorstores import VectorStore
+from src.langchain_milvus.utility import get_bedrock_embeddings
+from src.langchain_milvus import constant
+
+def get_vector_store(collection_name: str, uri: str = constant.URI, data_base:str = constant.DB_NAME) -> VectorStore:
     """Create Milvus vector store instance.
     index_type: how fast the search
         options: FLAT, IVF_FLAT, IVF_SQ8, HNSW, ANNOY
@@ -27,11 +31,47 @@ def get_vector_store(collection_name: str, uri: str) -> Milvus:
         embedding_function=get_bedrock_embeddings(),
         connection_args={
             "uri": uri,
+            "token": "root:Milvus",
+            "db_name": data_base
+
         },
         collection_name=collection_name,
         index_params={
-            "index_type": "HNSW", # Use HNSW for fast and accurate search
-            "metric_type": "COSINE", # Use COSINE for text search
+            "index_type": "HNSW",  # Use HNSW for fast and accurate search
+            "metric_type": "COSINE",  # Use COSINE for text search
         },
+        primary_field="pk",
+        auto_id=True,
+        consistency_level="Strong",
+        drop_old=False
     )
     return vector_store
+
+
+def clear_collection(collection_name: str, db_name: str = constant.DB_NAME):
+    """Clear Milvus vector store collection."""
+
+    conn = connections.connect(host="127.0.0.1", port=19530)
+
+    # Check if the database exists
+    try:
+        existing_databases = db.list_database()
+        if db_name in existing_databases:
+
+            # Use the database context
+            db.using_database(db_name)
+            print(f"Using '{db_name}'.")
+
+            # Drop all collections in the database
+            collections = utility.list_collections()
+            if collection_name in collections:
+                collection = Collection(name=collection_name)
+                collection.drop()
+                print(f"Collection '{collection_name}' has been dropped.")
+    except MilvusException as e:
+        print(f"An error occurred: {str(e)}")
+
+
+if __name__ == '__main__':
+    clear_collection(constant.COLLECTION_NAME)
+

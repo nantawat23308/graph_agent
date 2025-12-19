@@ -1,6 +1,7 @@
 from langchain_aws import BedrockEmbeddings
 from langchain_core.embeddings import Embeddings
 from dotenv import load_dotenv
+
 load_dotenv()
 
 
