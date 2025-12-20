@@ -21,7 +21,7 @@ The agent's architecture is composed of several specialized agents that collabor
 5.  **Draft Report**: The findings from the researcher agents are used to generate a draft report.
 6.  **Final Report Generation**: The draft report is then refined and formatted to produce the final, comprehensive report.
 
-### Flowchart
+### Flowchart Deep Research Agent
 
 ```mermaid
 ---
@@ -66,6 +66,36 @@ graph TD;
 	classDef default fill:#f2f0f,line-height:1.2
 	classDef first fill-opacity:0
 	classDef last fill:#bfb6f
+
+```
+
+### Flowchart Rag Aget
+
+```mermaid
+---
+config:
+  flowchart:
+    curve: linear
+---
+graph TD;
+	__start__([<p>__start__</p>]):::first
+	retrieve(retrieve)
+	generate(generate)
+	rewrite(rewrite)
+	final_fallback(final_fallback)
+	__end__([<p>__end__</p>]):::last
+	__start__ --> retrieve;
+	generate -. &nbsp;useful&nbsp; .-> __end__;
+	generate -.-> final_fallback;
+	retrieve -.-> final_fallback;
+	retrieve -.-> generate;
+	retrieve -.-> rewrite;
+	rewrite --> retrieve;
+	final_fallback --> __end__;
+	generate -.-> generate;
+	classDef default fill:#f2f0ff,line-height:1.2
+	classDef first fill-opacity:0
+	classDef last fill:#bfb6fc
 
 ```
 

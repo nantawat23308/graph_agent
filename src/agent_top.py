@@ -8,6 +8,7 @@ from src.agent_scope import write_draft_report, write_research_brief, clarify_wi
 from src.agent_supervisor import supervisor_agent
 from src.prompts.prompt_final import final_report_generation_with_helpfulness_insightfulness_hit_citation_prompt
 from src.configuration import Configuration
+from langgraph.checkpoint.memory import InMemorySaver
 
 
 async def final_report_generation(state: AgentState, config: RunnableConfig):
@@ -55,4 +56,5 @@ deep_researcher_builder.add_edge("supervisor_subgraph", "final_report_generation
 deep_researcher_builder.add_edge("final_report_generation", END)
 
 # The completed graph can now be used to run the deep research agent workflow
-deep_researcher_graph = deep_researcher_builder.compile()
+checkpointer = InMemorySaver()
+deep_researcher_graph = deep_researcher_builder.compile(checkpointer=checkpointer)

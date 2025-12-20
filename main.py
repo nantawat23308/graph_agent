@@ -3,7 +3,7 @@ from langgraph.checkpoint.memory import InMemorySaver
 from src.agent_top import deep_researcher_graph, deep_researcher_builder
 from langgraph.config import RunnableConfig
 from src.utility import tavily_search, think_tool
-
+import uuid
 # Tools Milvus
 from src.langchain_milvus.tools_utils import milvus_search, rag_milvus
 # from PIL import Image, ImageDraw
@@ -17,12 +17,14 @@ async def main():
     #     llm=model,
     #     researcher_tools=tools,
     # )
+    thread_id = uuid.uuid4()
     config: RunnableConfig = {
         "configurable":
             {
                 "llm": model,
                 "allow_clarification": False,
                 "researcher_tools": tools,
+                "thread_id": thread_id
             },
         "recursion_limit": 50}
     full_agent = deep_researcher_builder.compile(checkpointer=checkpointer)
@@ -32,18 +34,18 @@ async def main():
     # PILimage = Image.fromarray(image)
     # PILimage.save('result.png')
 
-    # result = await deep_researcher_graph.ainvoke(
-    #     input={
-    #         "messages": [
-    #             "Can you provide an in-depth analysis of the impact of climate change on global agriculture?",
-    #             "I would like to understand both the challenges and potential solutions.",
-    #         ]
-    #     },
-    #     config=config,
-    # )
-    #
-    # print("Final Result:")
-    # print(result['messages'])
+    result = await deep_researcher_graph.ainvoke(
+        input={
+            "messages": [
+                "Can you provide an in-depth analysis of the impact of climate change on global agriculture?",
+                "I would like to understand both the challenges and potential solutions.",
+            ]
+        },
+        config=config,
+    )
+
+    print("Final Result:")
+    print(result['messages'])
 
 
 if __name__ == "__main__":

@@ -123,4 +123,4 @@ research_builder.add_conditional_edges(
 research_builder.add_edge("tool_node", "llm_call")
 research_builder.add_edge("compress_research", END)
 
-researcher_agent = research_builder.compile()
+researcher_agent = research_builder.compile(checkpointer=True)
