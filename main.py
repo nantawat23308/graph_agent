@@ -3,20 +3,16 @@ from langgraph.checkpoint.memory import InMemorySaver
 from src.agent_top import deep_researcher_graph, deep_researcher_builder
 from langgraph.config import RunnableConfig
 from src.utility import tavily_search, think_tool
+from src.agent_rag import rag_agent
 import uuid
 # Tools Milvus
 from src.langchain_milvus.tools_utils import milvus_search, rag_milvus
 # from PIL import Image, ImageDraw
 
 
-async def main():
-    checkpointer = InMemorySaver()
+async def deep_research():
     model = init_chat_model("bedrock_converse:us.meta.llama4-maverick-17b-instruct-v1:0")
-    tools = [tavily_search, think_tool, milvus_search, rag_milvus]
-    # config = Configuration(
-    #     llm=model,
-    #     researcher_tools=tools,
-    # )
+    tools = [tavily_search, think_tool]
     thread_id = uuid.uuid4()
     config: RunnableConfig = {
         "configurable":
@@ -27,12 +23,6 @@ async def main():
                 "thread_id": thread_id
             },
         "recursion_limit": 50}
-    full_agent = deep_researcher_builder.compile(checkpointer=checkpointer)
-    image = full_agent.get_graph(xray=True).draw_mermaid()
-    with open('deep_researcher_graph.mmd', 'w') as f:
-        f.write(image)
-    # PILimage = Image.fromarray(image)
-    # PILimage.save('result.png')
 
     result = await deep_researcher_graph.ainvoke(
         input={
@@ -48,7 +38,25 @@ async def main():
     print(result['messages'])
 
 
+def rag_milvus_agent():
+    thread_id = uuid.uuid4()
+    model = init_chat_model("bedrock_converse:us.meta.llama4-maverick-17b-instruct-v1:0")
+    config: RunnableConfig = {
+        "configurable":
+            {
+                "llm": model,
+                "thread_id": thread_id
+            },
+        "recursion_limit": 100}
+    inputs = {"question": "What are some exciting projects that can be built with LangChain?"}
+    output = rag_agent.invoke(
+        inputs,
+        config=config,
+    )
+    print("Final Answer:")
+    print(output.get("generation"))
+
 if __name__ == "__main__":
     import asyncio
 
-    asyncio.run(main())
+    asyncio.run(deep_research())

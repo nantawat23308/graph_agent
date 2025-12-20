@@ -200,4 +200,4 @@ supervisor_builder.add_node("supervisor", supervisor)
 supervisor_builder.add_node("supervisor_tools", supervisor_tools)
 
 supervisor_builder.add_edge(START, "supervisor")
-supervisor_agent = supervisor_builder.compile()
+supervisor_agent = supervisor_builder.compile(checkpointer=True)

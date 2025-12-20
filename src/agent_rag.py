@@ -190,7 +190,7 @@ workflow.add_conditional_edges(
     }
 )
 checkpointer = InMemorySaver()
-agent_app = workflow.compile(checkpointer)
+rag_agent = workflow.compile(checkpointer)
 # image = agent_app.get_graph(xray=True).draw_mermaid()
 # with open('deep_researcher_graph.mmd', 'w') as f:
 #     f.write(image)
@@ -210,7 +210,7 @@ if __name__ == '__main__':
             },
         "recursion_limit": 100}
     inputs = {"question": "What are some exciting projects that can be built with LangChain?"}
-    output = agent_app.invoke(
+    output = rag_agent.invoke(
         inputs,
         config = config,
     )
