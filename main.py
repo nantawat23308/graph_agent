@@ -26,22 +26,24 @@ async def main():
             },
         "recursion_limit": 50}
     full_agent = deep_researcher_builder.compile(checkpointer=checkpointer)
-    # image = full_agent.get_graph(xray=True).draw_mermaid_png()
+    image = full_agent.get_graph(xray=True).draw_mermaid()
+    with open('deep_researcher_graph.mmd', 'w') as f:
+        f.write(image)
     # PILimage = Image.fromarray(image)
     # PILimage.save('result.png')
 
-    result = await deep_researcher_graph.ainvoke(
-        input={
-            "messages": [
-                "Can you provide an in-depth analysis of the impact of climate change on global agriculture?",
-                "I would like to understand both the challenges and potential solutions.",
-            ]
-        },
-        config=config,
-    )
-
-    print("Final Result:")
-    print(result['messages'])
+    # result = await deep_researcher_graph.ainvoke(
+    #     input={
+    #         "messages": [
+    #             "Can you provide an in-depth analysis of the impact of climate change on global agriculture?",
+    #             "I would like to understand both the challenges and potential solutions.",
+    #         ]
+    #     },
+    #     config=config,
+    # )
+    #
+    # print("Final Result:")
+    # print(result['messages'])
 
 
 if __name__ == "__main__":
