@@ -31,13 +31,13 @@ async def clarify_with_user(
     Returns:
         Command to either end with a clarifying question or proceed to research brief
     """
-    # Step 1: Check if clarification is enabled in configuration
+    # Check if clarification is enabled in configuration
     configurable = Configuration.from_runnable_config(config)
     if not configurable.allow_clarification:
         # Skip clarification step and proceed directly to research
         return Command(goto="write_research_brief")
 
-    # Step 2: Prepare the model for structured clarification analysis
+    # Prepare the model for structured clarification analysis
     messages = state["messages"]
 
     # Configure model with structured output and retry logic
@@ -47,14 +47,14 @@ async def clarify_with_user(
         .with_retry(stop_after_attempt=configurable.max_structured_output_retries)
     )
 
-    # Step 3: Analyze whether clarification is needed
+    # Analyze whether clarification is needed
     prompt_content = clarify_with_user_instructions.format(messages=get_buffer_string(messages), date=get_today_str())
     response = None
     while not response:
         response = await clarification_model.ainvoke([HumanMessage(content=prompt_content)])
         print("clarification response:", response)
 
-    # Step 4: Route based on clarification analysis
+    # Route based on clarification analysis
     if response.need_clarification:
         # End with clarifying question for user
         return Command(goto=END, update={"messages": [AIMessage(content=response.question)]})

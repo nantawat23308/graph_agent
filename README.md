@@ -4,13 +4,17 @@
 
 # Deep Research Agent
 
-A deep research agent that can clarify user requirements, write a research brief, draft a report, and generate a final report after supervisor review.
+A deep research agent that can clarify user requirements, write a research brief, draft a report, and generate a final report after supervisor review. This project also includes a self-correcting RAG agent.
 
 ## Project Overview
 
 The Deep Research Agent is a sophisticated AI-powered agent designed to perform in-depth research on a given topic. It follows a structured workflow to ensure the final report is comprehensive, accurate, and tailored to the user's needs. The agent is built using the LangChain framework and leverages a multi-layered agentic architecture to manage the research process.
 
+This project also includes a self-correcting RAG (Retrieval-Augmented Generation) agent that can answer questions based on a knowledge base stored in a Milvus vector database.
+
 ## Architecture
+
+### Deep Research Agent
 
 The agent's architecture is composed of several specialized agents that collaborate to produce the final research report. The workflow is as follows:
 
@@ -20,6 +24,15 @@ The agent's architecture is composed of several specialized agents that collabor
 4.  **Researcher Agent**: These agents conduct the actual research using a variety of tools, such as web search and a Milvus vector database.
 5.  **Draft Report**: The findings from the researcher agents are used to generate a draft report.
 6.  **Final Report Generation**: The draft report is then refined and formatted to produce the final, comprehensive report.
+
+### RAG Agent
+
+The RAG agent is a self-correcting agent that uses a graph-based workflow to answer questions. The workflow is as follows:
+
+1.  **Retrieve**: The agent retrieves relevant documents from the Milvus vector database.
+2.  **Grade Documents**: The agent grades the relevance of the retrieved documents. If the documents are not relevant, it will rewrite the query and try again.
+3.  **Generate**: The agent generates an answer based on the retrieved documents.
+4.  **Grade Generation**: The agent grades the generated answer for hallucinations and relevance. If the answer is not satisfactory, it will try to generate a new one.
 
 ### Flowchart Deep Research Agent
 
@@ -69,7 +82,7 @@ graph TD;
 
 ```
 
-### Flowchart Rag Aget
+### Flowchart RAG Agent
 
 ```mermaid
 ---
@@ -85,7 +98,7 @@ graph TD;
 	final_fallback(final_fallback)
 	__end__([<p>__end__</p>]):::last
 	__start__ --> retrieve;
-	generate -. &nbsp;useful&nbsp; .-> __end__;
+	generate -. &nbsp useful &nbsp .-> __end__;
 	generate -.-> final_fallback;
 	retrieve -.-> final_fallback;
 	retrieve -.-> generate;
@@ -93,9 +106,9 @@ graph TD;
 	rewrite --> retrieve;
 	final_fallback --> __end__;
 	generate -.-> generate;
-	classDef default fill:#f2f0ff,line-height:1.2
+	classDef default fill:#f2f0f,line-height:1.2
 	classDef first fill-opacity:0
-	classDef last fill:#bfb6fc
+	classDef last fill:#bfb6f
 
 ```
 
@@ -103,25 +116,28 @@ graph TD;
 
 ### `main.py`
 
-The entry point of the application. It initializes the language model, tools, and the main agent graph. It also contains the main asynchronous function to run the agent.
+The entry point of the application. It contains two functions: `deep_research` to run the deep research agent, and `rag_milvus_agent` to run the RAG agent.
 
 ### `src/`
 
 This directory contains the core logic for the agent.
 
--   **`agent_top.py`**: Defines the main graph that orchestrates the entire research process, connecting all the different agents and nodes.
+-   **`agent_top.py`**: Defines the main graph for the deep research agent.
+-   **`agent_rag.py`**: Defines the graph for the self-correcting RAG agent.
 -   **`agent_scope.py`**: Contains the logic for the agent that clarifies the user's request and writes the research brief.
 -   **`agent_supervisor.py`**: Implements the supervisor agent that breaks down the research brief and delegates tasks to researcher agents.
 -   **`agent_research.py`**: Defines the researcher agent that performs the actual research using the provided tools.
 -   **`configuration.py`**: Contains the configuration classes for the agent, including LLM settings, tool configurations, and other parameters.
 -   **`state.py`**: Defines the state objects that are passed between the different nodes in the agent graph.
 -   **`utility.py`**: Provides utility functions used across the project, such as getting the current date, and tools like `think_tool`.
+-   **`logger.py`**: A simple logger configuration for the project.
 
 ### `src/prompts/`
 
 This directory contains the prompt templates used by the different agents.
 
 -   **`prompt_final.py`**: Prompt for generating the final report.
+-   **`prompt_rag.py`**: Prompts for the RAG agent.
 -   **`prompt_research.py`**: Prompts for the researcher agent.
 -   **`prompt_scope.py`**: Prompts for the scoping agent.
 -   **`prompt_supervisor.py`**: Prompt for the supervisor agent.
@@ -152,7 +168,7 @@ This directory contains the integration with the Milvus vector database.
 2.  **Set up Environment Variables**:
     Create a `.env` file in the root directory and add the necessary environment variables (e.g., `TAVILY_SEARCH_API_KEY`, AWS credentials for Bedrock).
 3.  **Run the Agent**:
-    Execute the `main.py` script to run the agent.
+    Execute the `main.py` script to run the agent. You can choose to run either the `deep_research` agent or the `rag_milvus_agent`.
     ```bash
     python main.py
     ```

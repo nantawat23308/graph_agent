@@ -38,7 +38,7 @@ async def supervisor(state: SupervisorState, config: RunnableConfig) -> Command[
     max_researcher_iterations = configurable.max_researcher_iterations
     max_concurrent_research_units = configurable.max_concurrent_research_units
 
-    # Step 1: Configure the supervisor model with available tools
+    # Configure the supervisor model with available tools
     lead_researcher_tools = [ConductResearch, ResearchComplete, think_tool]
     research_model = (
         configurable.get_model()
@@ -46,7 +46,7 @@ async def supervisor(state: SupervisorState, config: RunnableConfig) -> Command[
         .with_retry(stop_after_attempt=configurable.max_structured_output_retries)
     )
 
-    # Step 2: Generate supervisor response based on current context
+    # Generate supervisor response based on current context
     supervisor_messages = state.get("supervisor_messages", [])
 
     system_message = lead_researcher_with_multiple_steps_diffusion_double_check_prompt.format(
@@ -59,7 +59,7 @@ async def supervisor(state: SupervisorState, config: RunnableConfig) -> Command[
 
     response = await research_model.ainvoke(messages)
 
-    # Step 3: Update state and proceed to tool execution
+    # Update state and proceed to tool execution
     # logger.debug("Supervisor response generated, moving to supervisor_tools")
     return Command(
         goto="supervisor_tools",
@@ -144,9 +144,6 @@ async def supervisor_tools(state: SupervisorState, config: RunnableConfig) -> Co
                 tool_results = await asyncio.gather(*coros)
 
                 # Format research results as tool messages
-                # Each sub-agent returns compressed research findings in result["compressed_research"]
-                # We write this compressed research as the content of a ToolMessage, which allows
-                # the supervisor to later retrieve these findings via get_notes_from_tool_calls()
                 research_tool_messages = [
                     ToolMessage(
                         content=result.get("compressed_research", "Error synthesizing research report"),

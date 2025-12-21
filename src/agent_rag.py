@@ -4,7 +4,7 @@ from langgraph.graph import END, StateGraph
 from langgraph.types import Command
 
 from src.langchain_milvus import constant
-from src.langchain_milvus.searching import search_retrieve
+from src.langchain_milvus.searching import search_retrieve_rerank
 
 load_dotenv()
 from langchain_core.prompts import ChatPromptTemplate
@@ -20,7 +20,7 @@ import uuid
 
 MAX_RETRIES = 3
 MAX_INVOKES = 15
-
+retriever = search_retrieve_rerank(constant.COLLECTION_NAME, constant.URI)
 
 class AgentState(TypedDict):
     question: str
@@ -39,8 +39,6 @@ class GradeHallucination(BaseModel):
     binary_score: str = Field(description="Answer is grounded in the facts, 'yes' or 'no'")
 
 
-retriever = search_retrieve(constant.COLLECTION_NAME, constant.URI)
-
 def retrieve(state: AgentState, config: RunnableConfig):
     logger.debug("--- RETRIEVING ---")
     docs = retriever.invoke(state["question"])
@@ -48,6 +46,9 @@ def retrieve(state: AgentState, config: RunnableConfig):
 
 
 def generate(state: AgentState, config: RunnableConfig):
+    """
+    RAG Generation Node
+    """
     logger.info("--- GENERATING ---")
     # Standard RAG generation logic
     configurable = Configuration.from_runnable_config(config)
@@ -73,6 +74,9 @@ def generate(state: AgentState, config: RunnableConfig):
 
 
 def rewrite_query(state: AgentState, config: RunnableConfig):
+    """
+    Rewrite the query for better vector search results.
+    """
     logger.debug("--- REWRITING QUERY ---")
     # Ask LLM to improve the question for better searching
     configurable = Configuration.from_runnable_config(config)
@@ -82,6 +86,9 @@ def rewrite_query(state: AgentState, config: RunnableConfig):
 
 
 def grade_documents(state: AgentState, config: RunnableConfig):
+    """
+    Grade the relevance of retrieved documents to the question.
+    """
     logger.debug("--- CHECKING DOCUMENT RELEVANCE ---")
     question = state["question"]
     docs = state["documents"]
@@ -104,6 +111,9 @@ def grade_documents(state: AgentState, config: RunnableConfig):
 
 
 def grade_generation_v_documents(state: AgentState, config: RunnableConfig):
+    """
+    Grade the generation against the retrieved documents to check for hallucinations.
+    """
     logger.debug("--- SELF-CORRECTION: CHECKING HALLUCINATION ---")
     generation = state["generation"]
     docs = state["documents"]

@@ -1,6 +1,10 @@
 from src.langchain_milvus.db import get_vector_store
 from src.langchain_milvus.utility import get_bedrock_embeddings
 from src.langchain_milvus import constant
+from langchain_community.cross_encoders import HuggingFaceCrossEncoder
+
+from langchain_classic.retrievers.document_compressors import CrossEncoderReranker
+from langchain_classic.retrievers import ContextualCompressionRetriever
 from langchain_core.documents import Document
 from typing import List
 
@@ -78,6 +82,24 @@ def search_retrieve(collection_name: str, uri: str, top_k: int = 5):
     vector_store = get_vector_store(collection_name, uri)
     retriever = vector_store.as_retriever(search_type="mmr", search_kwargs={"k": top_k})
     return retriever
+
+
+def search_retrieve_rerank(collection_name: str, uri: str, top_k: int = 5):
+    """Search for vectors in Milvus vector store using hybrid retrieval with reranking.
+    Combines vector similarity search with traditional keyword-based retrieval,
+    followed by reranking of results based on relevance.
+    """
+    vector_store = get_vector_store(collection_name, uri)
+    retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 50, "rerank": True})
+    model = HuggingFaceCrossEncoder(model_name=constant.RERANK_MODEL_LIGHT)
+    reranker = CrossEncoderReranker(model=model, top_n=top_k)
+    # base_retriever = vector_store.as_retriever(search_kwargs={"k": 50})
+
+    compression_retriever = ContextualCompressionRetriever(
+        base_compressor=reranker,
+        base_retriever=retriever
+    )
+    return compression_retriever
 
 
 def milvus_search(query: str) -> str:

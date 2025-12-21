@@ -1,7 +1,7 @@
 from langchain_core.tools import tool
 from src.langchain_milvus.searching import search_vectors
 from src.langchain_milvus import constant
-from src.langchain_milvus.rag import rag_search_model
+from src.langchain_milvus.rag import rag_search_model, rag_search_model_rerank
 from langchain.chat_models import init_chat_model
 
 
@@ -38,8 +38,23 @@ def rag_milvus(query: str) -> str:
     Returns:
         Formatted string of search results with model-generated responses.
     """
-    model = init_chat_model("bedrock_converse:us.meta.llama4-maverick-17b-instruct-v1:0")
+    model = init_chat_model(constant.LLM_MODEL)
     formatted_results = rag_search_model(
+        model=model,
+        query=query,
+    )
+    return formatted_results
+
+@tool("RAG_Search_Rerank", return_direct=True)
+def rag_milvus(query: str) -> str:
+    """Performs RAG search using Milvus vector store and a language model.
+    Args:
+        query: The search query string.
+    Returns:
+        Formatted string of search results with model-generated responses.
+    """
+    model = init_chat_model(constant.LLM_MODEL)
+    formatted_results = rag_search_model_rerank(
         model=model,
         query=query,
     )
