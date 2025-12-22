@@ -7,13 +7,12 @@ from langgraph.constants import END, START
 from langgraph.graph import StateGraph
 from langgraph.types import Command
 
-from src.agent_research import researcher_agent
+from src.deep_research.agent_research import researcher_agent
 
-from src.state import AgentState, ResearchQuestion, AgentInputState, ConductResearch, ResearchComplete, SupervisorState
+from src.deep_research.state import ConductResearch, ResearchComplete, SupervisorState
 from src.configuration import Configuration
 from src.utility import think_tool, get_today_str, get_notes_from_tool_calls, refine_draft_report
 from src.prompts.prompt_supervisor import lead_researcher_with_multiple_steps_diffusion_double_check_prompt
-from langgraph.prebuilt import InjectedState
 
 load_dotenv()
 

@@ -1,6 +1,6 @@
 from langchain.chat_models import init_chat_model
 from langgraph.checkpoint.memory import InMemorySaver
-from src.agent_top import deep_researcher_graph, deep_researcher_builder
+from src.agent_deep_research import deep_researcher_graph, deep_researcher_builder
 from langgraph.config import RunnableConfig
 from src.utility import tavily_search, think_tool
 from src.agent_rag import rag_agent

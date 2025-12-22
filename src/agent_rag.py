@@ -12,7 +12,7 @@ from typing import List, TypedDict
 from pydantic import BaseModel, Field
 from langchain_core.runnables import RunnableConfig
 from src.configuration import Configuration
-from src.logger import logger
+from src.logger import log
 from src.prompts import prompt_rag
 from langchain_core.messages import SystemMessage, HumanMessage
 from langgraph.checkpoint.memory import InMemorySaver
@@ -40,7 +40,7 @@ class GradeHallucination(BaseModel):
 
 
 def retrieve(state: AgentState, config: RunnableConfig):
-    logger.debug("--- RETRIEVING ---")
+    log.debug("--- RETRIEVING ---")
     docs = retriever.invoke(state["question"])
     return {"documents": docs}
 
@@ -49,12 +49,12 @@ def generate(state: AgentState, config: RunnableConfig):
     """
     RAG Generation Node
     """
-    logger.info("--- GENERATING ---")
+    log.info("--- GENERATING ---")
     # Standard RAG generation logic
     configurable = Configuration.from_runnable_config(config)
     invoke_count = state.get("invoke_count", 0) + 1
     if invoke_count > MAX_INVOKES:
-        logger.info("--- MAX INVOKE COUNT REACHED: EXITING ---")
+        log.info("--- MAX INVOKE COUNT REACHED: EXITING ---")
         return Command(
             goto=END,
             update={
@@ -69,7 +69,7 @@ def generate(state: AgentState, config: RunnableConfig):
     prompt = human_template.format(context_text=context, user_question=state['question'])
 
     response = llm.invoke([SystemMessage(prompt_rag.SYSTEM_INSTRUCTION), HumanMessage(prompt)])
-    logger.info("Invoke count: {}".format(invoke_count))
+    log.info("Invoke count: {}".format(invoke_count))
     return {"generation": response.content, "invoke_count": invoke_count}
 
 
@@ -77,7 +77,7 @@ def rewrite_query(state: AgentState, config: RunnableConfig):
     """
     Rewrite the query for better vector search results.
     """
-    logger.debug("--- REWRITING QUERY ---")
+    log.debug("--- REWRITING QUERY ---")
     # Ask LLM to improve the question for better searching
     configurable = Configuration.from_runnable_config(config)
     llm = configurable.get_model()
@@ -89,11 +89,11 @@ def grade_documents(state: AgentState, config: RunnableConfig):
     """
     Grade the relevance of retrieved documents to the question.
     """
-    logger.debug("--- CHECKING DOCUMENT RELEVANCE ---")
+    log.debug("--- CHECKING DOCUMENT RELEVANCE ---")
     question = state["question"]
     docs = state["documents"]
     if state.get("retry_count", 0) >= MAX_RETRIES:
-        logger.info("--- MAX RETRIES REACHED: EXITING ---")
+        log.info("--- MAX RETRIES REACHED: EXITING ---")
         return "final_fallback"
     # If Milvus returned nothing, handle it immediately
     if not docs:
@@ -114,7 +114,7 @@ def grade_generation_v_documents(state: AgentState, config: RunnableConfig):
     """
     Grade the generation against the retrieved documents to check for hallucinations.
     """
-    logger.debug("--- SELF-CORRECTION: CHECKING HALLUCINATION ---")
+    log.debug("--- SELF-CORRECTION: CHECKING HALLUCINATION ---")
     generation = state["generation"]
     docs = state["documents"]
     safety_result = check_safety(state)  # returns "stop" or "continue"
@@ -126,10 +126,10 @@ def grade_generation_v_documents(state: AgentState, config: RunnableConfig):
     score = hallucination_grader.invoke(f"Docs: {docs} \n Answer: {generation}")
 
     if score.binary_score == "yes":
-        logger.debug("--- DECISION: ANSWER IS GROUNDED ---")
+        log.debug("--- DECISION: ANSWER IS GROUNDED ---")
         return "useful"
     else:
-        logger.debug("--- DECISION: HALLUCINATION DETECTED, RETRYING ---")
+        log.debug("--- DECISION: HALLUCINATION DETECTED, RETRYING ---")
         return "not useful"
 
 
@@ -226,8 +226,8 @@ if __name__ == '__main__':
     )
     # for output in agent_app.stream(inputs):
     #     for key, value in output.items():
-    #         logger.info(f"Node '{key}' completed.")
+    #         log.info(f"Node '{key}' completed.")
 
     # Final answer
-    logger.info("Final Answer:")
-    logger.info(output.get("generation"))
+    log.info("Final Answer:")
+    log.info(output.get("generation"))

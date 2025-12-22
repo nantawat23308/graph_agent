@@ -14,9 +14,11 @@ dependencies = [
     "langchain-docling",
     "langchain-huggingface>=1.2.0",
     "langchain-milvus>=0.3.2",
+    "langchain-tavily>=0.2.15",
     "langchain-text-splitters>=1.1.0",
     "langgraph>=1.0.5",
     "pymilvus[milvus-lite]>=2.6.5",
     "sentence-transformers>=5.2.0",
     "tavily-python>=0.7.16",
+    "yfinance>=0.2.66",
 ]

@@ -32,12 +32,7 @@ This directory contains a collection of Python scripts for integrating the LangC
    ```
 2. **Set up Environment Variables**:
    Create a `.env` file in the root directory and add the necessary environment variables (e.g., AWS credentials for Bedrock).
-3. **Run the Demo**:
-   Execute the `demo.py` script to see an example of how to ingest and search for data.
-   ```bash
-   python -m src.langchain_milvus.demo
-   ```
-4. **Use the Tools**:
+3. **Use the Tools**:
    The `tools_utils.py` script provides tools that can be easily integrated into other applications.
 
 ## Dependencies

@@ -6,19 +6,10 @@ from uuid import uuid4
 from dotenv import load_dotenv
 from src.langchain_milvus.db import get_vector_store
 from src.langchain_milvus import constant
+from src.langchain_milvus.utility import get_bedrock_embeddings
 load_dotenv()
 
 vector_store = get_vector_store(constant.COLLECTION_NAME)
-
-def get_bedrock_embeddings() -> Embeddings:
-    """Get Bedrock embeddings instance."""
-    embeddings = BedrockEmbeddings(
-        model_id="amazon.titan-embed-text-v2:0",
-        region_name="us-west-2",
-    )
-    return embeddings
-
-
 
 
 def ingest_from_documents():

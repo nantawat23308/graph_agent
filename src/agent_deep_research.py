@@ -2,10 +2,10 @@ from langchain_core.messages import HumanMessage
 from langgraph.graph import StateGraph, START, END
 from langgraph.config import RunnableConfig
 from src.utility import get_today_str
-from src.state import AgentState, AgentInputState
+from src.deep_research.state import AgentState, AgentInputState
 
-from src.agent_scope import write_draft_report, write_research_brief, clarify_with_user
-from src.agent_supervisor import supervisor_agent
+from src.deep_research.agent_scope import write_draft_report, write_research_brief, clarify_with_user
+from src.deep_research.agent_supervisor import supervisor_agent
 from src.prompts.prompt_final import final_report_generation_with_helpfulness_insightfulness_hit_citation_prompt
 from src.configuration import Configuration
 from langgraph.checkpoint.memory import InMemorySaver

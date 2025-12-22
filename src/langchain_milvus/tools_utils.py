@@ -1,6 +1,7 @@
 from langchain_core.tools import tool
 from src.langchain_milvus.searching import search_vectors
-from src.langchain_milvus import constant
+from src.langchain_milvus import constant as db_constant
+from src import constant
 from src.langchain_milvus.rag import rag_search_model, rag_search_model_rerank
 from langchain.chat_models import init_chat_model
 
@@ -16,8 +17,8 @@ def milvus_search(query: str) -> str:
     """
 
     results = search_vectors(
-        collection_name=constant.COLLECTION_NAME,
-        uri=constant.URI,
+        collection_name=db_constant.COLLECTION_NAME,
+        uri=db_constant.URI,
         query_text=query,
         top_k=5)
 

@@ -2,10 +2,9 @@ from typing_extensions import Literal
 
 from langgraph.graph import StateGraph, START, END
 from langchain_core.messages import SystemMessage, HumanMessage, ToolMessage, filter_messages
-from langchain.chat_models import init_chat_model
 from langchain_core.runnables import RunnableConfig
 
-from src.state import ResearcherState, ResearcherOutputState
+from src.deep_research.state import ResearcherState, ResearcherOutputState
 from src.utility import get_today_str
 from src.prompts.prompt_research import (
     research_agent_prompt,
@@ -13,7 +12,7 @@ from src.prompts.prompt_research import (
     compress_research_human_message,
 )
 from src.configuration import Configuration
-
+from src.logger import log
 
 def llm_call(state: ResearcherState, config: RunnableConfig):
     """Analyze current state and decide on next actions.
@@ -24,6 +23,7 @@ def llm_call(state: ResearcherState, config: RunnableConfig):
 
     Returns updated state with the model's response.
     """
+    log.debug("--- LLM CALL ---")
     configurable = Configuration.from_runnable_config(config)
     model_with_tools = (
         configurable.get_model()
@@ -35,9 +35,11 @@ def llm_call(state: ResearcherState, config: RunnableConfig):
     research_prompt = research_agent_prompt.format(
         date=get_today_str(),
         tool_instructions=configurable.get_tool_instructions())
+    result_llm_call = model_with_tools.invoke([SystemMessage(content=research_prompt)] + state["researcher_messages"])
+    log.debug("--- LLM Success ---")
     return {
         "researcher_messages": [
-            model_with_tools.invoke([SystemMessage(content=research_prompt)] + state["researcher_messages"])
+            result_llm_call
         ]
     }
 
@@ -53,10 +55,12 @@ def tool_node(state: ResearcherState, config: RunnableConfig):
     tools_by_name = {tool.name: tool for tool in tools}
 
     tool_calls = state["researcher_messages"][-1].tool_calls
+    log.debug("--- TOOL NODE: Executing %d tool calls ---", len(tool_calls))
 
     # Execute all tool calls
     observations = []
     for tool_call in tool_calls:
+        log.debug("Invoking tool: %s with args: %s", tool_call["name"], tool_call["args"])
         tool = tools_by_name[tool_call["name"]]
         observations.append(tool.invoke(tool_call["args"]))
 
@@ -75,6 +79,7 @@ def compress_research(state: ResearcherState, config: RunnableConfig) -> dict:
     Takes all the research messages and tool outputs and creates
     a compressed summary suitable for the supervisor's decision-making.
     """
+    log.debug("--- COMPRESS RESEARCH ---")
     configurable = Configuration.from_runnable_config(config)
     compress_model = configurable.get_model().with_retry(stop_after_attempt=configurable.max_structured_output_retries)
     system_message = compress_research_system_prompt.format(date=get_today_str())

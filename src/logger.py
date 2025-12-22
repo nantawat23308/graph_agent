@@ -21,4 +21,4 @@ logging.basicConfig(
 )
 
 # 2. Create a logger instance for your agent
-logger = logging.getLogger("project_agent")
+log = logging.getLogger("project_agent")
