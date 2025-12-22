@@ -95,10 +95,7 @@ def search_retrieve_rerank(collection_name: str, uri: str, top_k: int = 5):
     reranker = CrossEncoderReranker(model=model, top_n=top_k)
     # base_retriever = vector_store.as_retriever(search_kwargs={"k": 50})
 
-    compression_retriever = ContextualCompressionRetriever(
-        base_compressor=reranker,
-        base_retriever=retriever
-    )
+    compression_retriever = ContextualCompressionRetriever(base_compressor=reranker, base_retriever=retriever)
     return compression_retriever
 
 
@@ -109,11 +106,7 @@ def milvus_search(query: str) -> str:
         query: The search query string.
     """
 
-    results = search_vectors(
-        collection_name=constant.COLLECTION_NAME,
-        uri=constant.URI,
-        query_text=query,
-        top_k=5)
+    results = search_vectors(collection_name=constant.COLLECTION_NAME, uri=constant.URI, query_text=query, top_k=5)
 
     if not results:
         return "No relevant documents found in the vector store."
@@ -123,6 +116,7 @@ def milvus_search(query: str) -> str:
         formatted_results += f"Document {i}:\n{doc.page_content}\n\n"
 
     return formatted_results
+
 
 if __name__ == '__main__':
     result = milvus_search("exciting project with LangChain")

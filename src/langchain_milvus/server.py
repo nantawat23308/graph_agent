@@ -2,7 +2,6 @@ from pymilvus import Collection, MilvusException, connections, db, utility
 from src.langchain_milvus.constant import URI, DB_NAME
 
 
-
 conn = connections.connect(host="127.0.0.1", port=19530)
 
 # Check if the database exists

@@ -10,7 +10,9 @@ from src.langchain_milvus.db import get_vector_store
 from src.langchain_milvus.ingest_data import ingest_documents
 
 
-def process_and_ingest_file(file_path: str, vector_store: VectorStore, chunk_size: int = 1000, chunk_overlap: int = 200):
+def process_and_ingest_file(
+    file_path: str, vector_store: VectorStore, chunk_size: int = 1000, chunk_overlap: int = 200
+):
     """Process a text file by chunking and ingesting into Milvus vector store.
 
     Args:
@@ -28,7 +30,10 @@ def process_and_ingest_file(file_path: str, vector_store: VectorStore, chunk_siz
     ingest_documents(vector_store, documents)
     return vector_store
 
-def process_and_ingest_directory(directory_path: str, vector_store: VectorStore, chunk_size: int = 1000, chunk_overlap: int = 200):
+
+def process_and_ingest_directory(
+    directory_path: str, vector_store: VectorStore, chunk_size: int = 1000, chunk_overlap: int = 200
+):
     """Process all text files in a directory by chunking and ingesting into Milvus vector store.
 
     Args:
@@ -37,7 +42,6 @@ def process_and_ingest_directory(directory_path: str, vector_store: VectorStore,
         chunk_size (int, optional): The size of each chunk. Defaults to 1000.
         chunk_overlap (int, optional): The overlap between chunks. Defaults to 200.
     """
-
 
     document_collection = []
     for filename in os.listdir(directory_path):
@@ -51,6 +55,7 @@ def process_and_ingest_directory(directory_path: str, vector_store: VectorStore,
     # Ingest documents into the vector store
     ingest_documents(vector_store, document_collection)
     return vector_store
+
 
 if __name__ == '__main__':
     path_doc = Path().cwd().parent.parent / "doc"

@@ -6,6 +6,7 @@ from typing import List
 from src.langchain_milvus.utility import get_bedrock_embeddings
 from langchain_core.vectorstores import VectorStore
 
+
 def ingest_from_texts(texts: List[str], collection_name: str, uri: str):
     """Ingest texts into Milvus vector store."""
     vector_store = Milvus.from_texts(

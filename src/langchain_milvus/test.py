@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from src.langchain_milvus.db import get_vector_store
 from src.langchain_milvus import constant
 from src.langchain_milvus.utility import get_bedrock_embeddings
+
 load_dotenv()
 
 vector_store = get_vector_store(constant.COLLECTION_NAME)

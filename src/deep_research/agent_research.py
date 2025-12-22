@@ -14,6 +14,7 @@ from src.prompts.prompt_research import (
 from src.configuration import Configuration
 from src.logger import log
 
+
 def llm_call(state: ResearcherState, config: RunnableConfig):
     """Analyze current state and decide on next actions.
 
@@ -33,15 +34,11 @@ def llm_call(state: ResearcherState, config: RunnableConfig):
 
     ## Inject System prompt with Available Tools and Instructions
     research_prompt = research_agent_prompt.format(
-        date=get_today_str(),
-        tool_instructions=configurable.get_tool_instructions())
+        date=get_today_str(), tool_instructions=configurable.get_tool_instructions()
+    )
     result_llm_call = model_with_tools.invoke([SystemMessage(content=research_prompt)] + state["researcher_messages"])
     log.debug("--- LLM Success ---")
-    return {
-        "researcher_messages": [
-            result_llm_call
-        ]
-    }
+    return {"researcher_messages": [result_llm_call]}
 
 
 def tool_node(state: ResearcherState, config: RunnableConfig):

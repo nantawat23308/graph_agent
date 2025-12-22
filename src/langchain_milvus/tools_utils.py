@@ -17,10 +17,8 @@ def milvus_search(query: str) -> str:
     """
 
     results = search_vectors(
-        collection_name=db_constant.COLLECTION_NAME,
-        uri=db_constant.URI,
-        query_text=query,
-        top_k=5)
+        collection_name=db_constant.COLLECTION_NAME, uri=db_constant.URI, query_text=query, top_k=5
+    )
 
     if not results:
         return "No relevant documents found in the vector store."
@@ -30,6 +28,7 @@ def milvus_search(query: str) -> str:
         formatted_results += f"Document {i}:\n{doc.page_content}\n\n"
 
     return formatted_results
+
 
 @tool("RAG_Search", return_direct=True)
 def rag_milvus(query: str) -> str:
@@ -46,6 +45,7 @@ def rag_milvus(query: str) -> str:
     )
     return formatted_results
 
+
 @tool("RAG_Search_Rerank", return_direct=True)
 def rag_milvus(query: str) -> str:
     """Performs RAG search using Milvus vector store and a language model.
@@ -60,6 +60,8 @@ def rag_milvus(query: str) -> str:
         query=query,
     )
     return formatted_results
+
+
 if __name__ == '__main__':
     # Example usage
     search_example = "exciting project with LangChain"

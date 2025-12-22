@@ -5,7 +5,8 @@ from langchain_core.vectorstores import VectorStore
 from src.langchain_milvus.utility import get_bedrock_embeddings
 from src.langchain_milvus import constant
 
-def get_vector_store(collection_name: str, uri: str = constant.URI, data_base:str = constant.DB_NAME) -> VectorStore:
+
+def get_vector_store(collection_name: str, uri: str = constant.URI, data_base: str = constant.DB_NAME) -> VectorStore:
     """Create Milvus vector store instance.
     index_type: how fast the search
         options: FLAT, IVF_FLAT, IVF_SQ8, HNSW, ANNOY
@@ -29,12 +30,7 @@ def get_vector_store(collection_name: str, uri: str = constant.URI, data_base:st
     """
     vector_store = Milvus(
         embedding_function=get_bedrock_embeddings(),
-        connection_args={
-            "uri": uri,
-            "token": "root:Milvus",
-            "db_name": data_base
-
-        },
+        connection_args={"uri": uri, "token": "root:Milvus", "db_name": data_base},
         collection_name=collection_name,
         index_params={
             "index_type": "HNSW",  # Use HNSW for fast and accurate search
@@ -43,7 +39,7 @@ def get_vector_store(collection_name: str, uri: str = constant.URI, data_base:st
         primary_field="pk",
         auto_id=True,
         consistency_level="Strong",
-        drop_old=False
+        drop_old=False,
     )
     return vector_store
 
@@ -74,4 +70,3 @@ def clear_collection(collection_name: str, db_name: str = constant.DB_NAME):
 
 if __name__ == '__main__':
     clear_collection(constant.COLLECTION_NAME)
-

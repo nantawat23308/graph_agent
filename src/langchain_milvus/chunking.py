@@ -1,7 +1,11 @@
-from langchain_text_splitters import RecursiveCharacterTextSplitter, MarkdownHeaderTextSplitter
+import re
+
+import unicodedata
 from langchain_community.document_loaders import TextLoader
 from langchain_docling import DoclingLoader
 from langchain_docling.loader import ExportType
+from langchain_text_splitters import RecursiveCharacterTextSplitter, MarkdownHeaderTextSplitter
+from src.logger import log
 
 
 def chunk_text_file(file_path: str, chunk_size: int = 1000, chunk_overlap: int = 200):
@@ -48,6 +52,9 @@ def chunk_docling(file_path: str, chunk_size: int = 1000, chunk_overlap: int = 2
     # Load the Docling file
     loader = DoclingLoader(file_path, export_type=ExportType.MARKDOWN)
     documents = loader.load()
+
+    for doc in documents:
+        doc.page_content = clean_markdown(doc.page_content)
 
     # Create a text splitter
     text_splitter = RecursiveCharacterTextSplitter(
@@ -144,6 +151,40 @@ def chunk_by_paragraphs(text, max_chars=1000):
         chunks.append(current_chunk.strip())
 
     return chunks
+
+
+def clean_markdown(text: str) -> str:
+    """
+    Cleans Markdown text for LLM ingestion:
+    1. Normalizes Unicode (fixes encoding/charmap errors).
+    2. Removes document artifacts (Page X of Y).
+    3. Normalizes whitespace and newlines.
+    4. Cleans up repetitive separators.
+    """
+    if not text:
+        return ""
+    log.debug(f"Cleaning Markdown text")
+    log.debug("Original text length: %d", len(text))
+    text = unicodedata.normalize('NFKC', text)  # This prevents the 'charmap' / UnicodeEncodeError
+
+    text = re.sub(r'(?i)page \d+( of \d+)?', '', text)  # Removes "Page 1 of 10" or "Page 5" footers
+
+    text = re.sub(
+        r'[-*_]{3,}', '---', text
+    )  # Replaces strings like "--- --- ---" or "********" with a single separator
+
+    text = re.sub(r'[ \t]+', ' ', text)  # Replace multiple spaces with a single space
+
+    text = re.sub(r'\n{3,}', '\n\n', text)  # max 2 newlines (standard paragraph break).
+
+    # Often Docling picks up small icons as ![]() or [][]. These are junk for RAG.
+    text = re.sub(r'!\[\]\(.*?\)', '', text)  # Remove empty images
+    text = re.sub(r'\[\]\(.*?\)', '', text)  # Remove empty links
+
+    # Ensures all bullets use '-' for consistency
+    text = re.sub(r'^\s*[•●○*]\s+', '- ', text, flags=re.MULTILINE)
+    log.debug("Cleaned text length: %d", len(text))
+    return text.strip()
 
 
 if __name__ == '__main__':

@@ -7,6 +7,7 @@ from src.langchain_milvus.searching import search_retrieve, search_retrieve_rera
 from src.langchain_milvus import constant
 from src.langchain_milvus.prompt import SYSTEM_INSTRUCTION
 from dotenv import load_dotenv
+
 load_dotenv()
 
 
@@ -66,6 +67,7 @@ SOURCES:
 <final_result_start_here>
 """
 
+
 # 2. Helper function to format documents for the prompt
 def format_docs(docs):
     print(len(docs))
@@ -84,6 +86,7 @@ def format_docs_with_sources(docs):
 
     return "\n\n---\n\n".join(formatted_chunks)
 
+
 def rag_search_model(model: BaseChatModel, query: str) -> str:
     """Perform RAG search using Milvus vector store and LLM.
 
@@ -91,16 +94,12 @@ def rag_search_model(model: BaseChatModel, query: str) -> str:
         model: The language model to use for generating responses.
         query: The search query string.
     """
-    prompt = ChatPromptTemplate.from_messages([
-        ("system", SYSTEM_INSTRUCTION),
-        ("human", "Context:\n{context}\n\nQuestion:\n{question}")
-    ])
+    prompt = ChatPromptTemplate.from_messages(
+        [("system", SYSTEM_INSTRUCTION), ("human", "Context:\n{context}\n\nQuestion:\n{question}")]
+    )
     retriever = search_retrieve(collection_name=constant.COLLECTION_NAME, uri=constant.URI, top_k=5)
     rag_chain = (
-            {"context": retriever | format_docs, "question": RunnablePassthrough()}
-            | prompt
-            | model
-            | StrOutputParser()
+        {"context": retriever | format_docs, "question": RunnablePassthrough()} | prompt | model | StrOutputParser()
     )
     response = rag_chain.invoke(query)
     return response
@@ -113,17 +112,16 @@ def rag_search_model_rerank(model: BaseChatModel, query: str) -> str:
         model: The language model to use for generating responses.
         query: The search query string.
     """
-    prompt = ChatPromptTemplate.from_messages([
-        ("system", SYSTEM_INSTRUCTION),
-        ("human", "Context:\n{context}\n\nQuestion:\n{question}")
-    ])
+    prompt = ChatPromptTemplate.from_messages(
+        [("system", SYSTEM_INSTRUCTION), ("human", "Context:\n{context}\n\nQuestion:\n{question}")]
+    )
     # prompt = ChatPromptTemplate.from_template(template)
     retriever = search_retrieve_rerank(collection_name=constant.COLLECTION_NAME, uri=constant.URI, top_k=5)
     rag_chain = (
-            {"context": retriever | format_docs_with_sources, "question": RunnablePassthrough()}
-            | prompt
-            | model
-            | StrOutputParser()
+        {"context": retriever | format_docs_with_sources, "question": RunnablePassthrough()}
+        | prompt
+        | model
+        | StrOutputParser()
     )
     response = rag_chain.invoke(query)
     return response

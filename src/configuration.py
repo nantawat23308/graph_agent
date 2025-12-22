@@ -19,11 +19,6 @@ class Configuration(BaseModel):
         default=True,
         description="Whether to allow the agent to ask clarifying questions to the user before starting research.",
     )
-    context_window: int = Field(
-        default=1048576,
-        description="Context window (input) size of the LLM in tokens.",
-    )
-
     researcher_tools: list[Any] | None = Field(
         default=None,
         description="List of tools available to the Researcher agent.",
@@ -41,9 +36,12 @@ class Configuration(BaseModel):
         default=15,
         description="Maximum number of research iterations for the Research Supervisor. This is the number of times the Research Supervisor will reflect on the research and ask follow-up questions.",
     )
-    max_react_tool_calls: int = Field(
-        default=10,
-        description="Maximum number of tool calls for the Researcher agent in a single iteration.",
+    max_invocations: int = Field(
+        default=20,
+        description="Maximum number of total LLM invocations allowed per research session.",
+    )
+    max_retry_times: int = Field(
+        default=3,
     )
 
     @classmethod
@@ -67,8 +65,7 @@ class Configuration(BaseModel):
         return self.llm
 
     def model_with_tool(self):
-        """Get the LLM model with tools if configured.
-        """
+        """Get the LLM model with tools if configured."""
         if self.researcher_tools:
             tools = self.get_research_tools()
             return self.llm.bind_tools(tools)
